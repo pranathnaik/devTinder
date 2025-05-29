@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const { validateSignUpData } = require("../utils/validation");
 const User = require("../models/user");
+const { userAuth } = require("../middlewares/auth");
 
 const authRouter = express.Router();
 
@@ -17,8 +18,15 @@ authRouter.post("/signup", async (req, res) => {
       emailId,
       password: passwordHash,
     });
-    await user.save();
-    res.send("user added succusfully");
+
+    const savedUser = await user.save();
+
+    const token = await user.getJWT();
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000),
+    });
+
+    res.json({ message: "user added succusfully", data: savedUser });
   } catch (error) {
     res.status(400).send("Error" + error.message);
   }
@@ -31,7 +39,7 @@ authRouter.post("/login", async (req, res) => {
     const user = await User.findOne({ emailId: emailId });
 
     if (!user) {
-      throw new Error("Invalid Credentials");
+      res.status(400).send("Error: " + "User not found");
     }
 
     const isPasswordValid = await user.validatePassword(password);
@@ -39,10 +47,10 @@ authRouter.post("/login", async (req, res) => {
     if (isPasswordValid) {
       const token = await user.getJWT();
       res.cookie("token", token);
-      res.send("login successfull");
-    }
+      res.send(user);
+    } else res.status(400).send("Error: " + "Invalid Password");
   } catch (error) {
-    res.status(400).send("Error" + error.message);
+    res.status(400).send("Error: " + error.message);
   }
 });
 
