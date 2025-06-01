@@ -28,12 +28,12 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
-    age: { type: Number, min: 18 },
+    age: { type: Number, min: [18, "Must be at least 18, got {VALUE}"] },
     gender: {
       type: String,
       enum: {
-        values: ["male", "female", "other"],
-        message: "{VALUE} is not a valid gender",
+        values: ["male", "female", "  "],
+        message: `{VALUE} is not a valid gender`,
       },
     },
     photoUrl: {

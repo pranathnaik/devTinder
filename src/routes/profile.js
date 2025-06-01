@@ -20,7 +20,9 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
       throw new Error("Invalid Edit request");
     }
     const user = req.user;
-    const updatedUser = await User.findByIdAndUpdate(user._id, req.body);
+    const updatedUser = await User.findByIdAndUpdate(user._id, req.body, {
+      runValidators: true,
+    });
     res.json({
       message: `${updatedUser?.firstName} your profile got updated succussfulyy`,
       data: updatedUser,
